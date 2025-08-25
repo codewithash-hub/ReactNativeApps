@@ -1,6 +1,7 @@
 import axios from "axios";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
+import * as SecureStore from "expo-secure-store";
 
 let baseURL = "http://localhost:8000/api"; // fallback for web/ios
 
@@ -22,12 +23,12 @@ const API = axios.create({
   timeout: 5000,
 });
 
-API.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error("API Error:", error.message);
-    return Promise.reject(error);
+API.interceptors.request.use(async (config) => {
+  const token = await SecureStore.getItemAsync("access");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
+  return config;
+});
 
 export default API;
